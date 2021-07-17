@@ -69,7 +69,6 @@ if(!class_exists('BC_CF7')){
     	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         public function bc_functions_loaded(){
-            bc_build_update_checker('https://github.com/beavercoffee/bc-cf7', $this->file, 'bc-cf7');
             if(!bc_is_plugin_active('contact-form-7/wp-contact-form-7.php')){
                 add_action('admin_notices', function(){
                     echo bc_admin_notice(printf(__('No plugins found for: %s.'),'<strong>Contact Form 7</strong>'));
@@ -83,6 +82,7 @@ if(!class_exists('BC_CF7')){
             add_filter('wpcf7_posted_data_radio*', [$this, 'wpcf7_posted_data_type'], 10, 3);
             add_filter('wpcf7_posted_data_select', [$this, 'wpcf7_posted_data_type'], 10, 3);
             add_filter('wpcf7_posted_data_select*', [$this, 'wpcf7_posted_data_type'], 10, 3);
+            bc_build_update_checker('https://github.com/beavercoffee/bc-cf7', $this->file, 'bc-cf7');
             do_action('bc_cf7_loaded');
         }
 
@@ -312,6 +312,9 @@ if(!class_exists('BC_CF7')){
 
     }
 }
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 if(!function_exists('bc_cf7')){
     function bc_cf7(){
         return BC_CF7::get_instance();
