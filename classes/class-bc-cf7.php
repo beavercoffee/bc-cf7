@@ -122,6 +122,22 @@ if(!class_exists('BC_CF7')){
 
     	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+        public function pref($name = '', $contact_form = null){
+            if(null === $contact_form){
+                $contact_form = wpcf7_get_current_contact_form();
+            }
+            if(null === $contact_form){
+                return '';
+            }
+            $setting = $contact_form->pref($name);
+            if(null === $setting){
+                return '';
+            }
+            return $setting;
+        }
+
+    	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
         public function sanitize_posted_data($value){
             if(is_array($value)){
     			$value = array_map([$this, 'sanitize_posted_data'], $value);
@@ -130,6 +146,26 @@ if(!class_exists('BC_CF7')){
     			$value = wp_kses_no_null($value);
     		}
     		return $value;
+        }
+
+    	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        public function skip_mail($contact_form = null){
+            if(null === $contact_form){
+                $contact_form = wpcf7_get_current_contact_form();
+            }
+            if(null === $contact_form){
+                return false;
+            }
+            $skip_mail = ($contact_form->in_demo_mode() or $contact_form->is_true('skip_mail') or !empty($contact_form->skip_mail));
+            $skip_mail = apply_filters('wpcf7_skip_mail', $skip_mail, $contact_form);
+            return $skip_mail;
+        }
+
+    	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        public function type($contact_form = null){
+            return $this->pref('bc_type', $contact_form);
         }
 
     	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -218,36 +254,6 @@ if(!class_exists('BC_CF7')){
             }
             do_action('bc_cf7_updated', $meta_type, $object_id);
             return true;
-        }
-
-    	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        public function skip_mail($contact_form = null){
-            if(null === $contact_form){
-                $contact_form = wpcf7_get_current_contact_form();
-            }
-            if(null === $contact_form){
-                return false;
-            }
-            $skip_mail = ($contact_form->in_demo_mode() or $contact_form->is_true('skip_mail') or !empty($contact_form->skip_mail));
-            $skip_mail = apply_filters('wpcf7_skip_mail', $skip_mail, $contact_form);
-            return $skip_mail;
-        }
-
-    	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        public function type($contact_form = null){
-            if(null === $contact_form){
-                $contact_form = wpcf7_get_current_contact_form();
-            }
-            if(null === $contact_form){
-                return '';
-            }
-            $type = $contact_form->pref('bc_type');
-            if(null === $type){
-                return '';
-            }
-            return $type;
         }
 
     	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
