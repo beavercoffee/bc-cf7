@@ -75,6 +75,7 @@ if(!class_exists('BC_CF7')){
                 });
         		return;
         	}
+            add_action('wpcf7_enqueue_scripts', [$this, 'wpcf7_enqueue_scripts']);
             add_filter('wpcf7_posted_data', [$this, 'wpcf7_posted_data']);
             add_filter('wpcf7_posted_data_checkbox', [$this, 'wpcf7_posted_data_type'], 10, 3);
             add_filter('wpcf7_posted_data_checkbox*', [$this, 'wpcf7_posted_data_type'], 10, 3);
@@ -266,6 +267,17 @@ if(!class_exists('BC_CF7')){
             }
             do_action('bc_cf7_updated', $meta_type, $object_id);
             return true;
+        }
+
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        public function wpcf7_enqueue_scripts(){
+            $src = plugin_dir_url($this->file) . 'assets/bc-cf7.js';
+            $ver = filemtime(plugin_dir_path($this->file) . 'assets/bc-cf7.js');
+            wp_enqueue_script('bc-cf7', $src, ['contact-form-7'], $ver, true);
+        	if(isset($_SERVER['HTTP_USER_AGENT']) and false !== strpos($_SERVER['HTTP_USER_AGENT'], 'Mobile')){
+        		wp_add_inline_script('bc-cf7', 'bc_cf7.mobile();');
+        	}
         }
 
     	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
