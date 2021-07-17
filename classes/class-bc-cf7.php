@@ -88,6 +88,18 @@ if(!class_exists('BC_CF7')){
 
     	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+        public function is_true($name = '', $contact_form = null){
+            if(null === $contact_form){
+                $contact_form = wpcf7_get_current_contact_form();
+            }
+            if(null === $contact_form){
+                return false;
+            }
+            return $contact_form->is_true($name);
+        }
+
+    	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
         public function is_type($type = '', $contact_form = null){
             return $type === $this->type($contact_form);
         }
