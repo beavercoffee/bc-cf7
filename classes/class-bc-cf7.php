@@ -59,21 +59,6 @@ if(!class_exists('BC_CF7')){
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        private function get_posted_data($name = ''){
-            if(!$this->posted_data){
-                $this->setup_posted_data();
-            }
-            if('' === $name){
-                return $this->posted_data;
-            }
-            if(!isset($this->posted_data[$name])){
-                return '';
-            }
-            return $this->posted_data[$name];
-        }
-
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
         private function setup_posted_data(){
             $posted_data = array_filter((array) $_POST, function($key){
     			return '_' !== substr($key, 0, 1);
@@ -110,6 +95,21 @@ if(!class_exists('BC_CF7')){
             }
             bc_build_update_checker('https://github.com/beavercoffee/bc-cf7', $this->file, 'bc-cf7');
             do_action('bc_cf7_loaded');
+        }
+
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        public function get_posted_data($name = ''){
+            if(!$this->posted_data){
+                $this->setup_posted_data();
+            }
+            if('' === $name){
+                return $this->posted_data;
+            }
+            if(!isset($this->posted_data[$name])){
+                return '';
+            }
+            return $this->posted_data[$name];
         }
 
     	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
