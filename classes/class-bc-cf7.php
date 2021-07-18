@@ -209,11 +209,17 @@ if(!class_exists('BC_CF7')){
             if(null === $submission){
                 return false;
             }
+            if(!in_array($meta_type, ['post', 'user'])){
+                return false;
+            }
             if(0 === $object_id){
                 return false;
             }
-            if(!in_array($meta_type, ['post', 'user'])){
-                return false;
+            if('post' === $meta_type){
+                $the_post = wp_is_post_revision($object_id);
+                if($the_post){
+                    $object_id = $the_post; // Make sure meta is added to the post, not a revision.
+                }
             }
             $meta_data = [
                 'bc_contact_form_id' => $contact_form->id(),
@@ -234,9 +240,8 @@ if(!class_exists('BC_CF7')){
             $meta_data = apply_filters('bc_cf7_meta_data', $meta_data, $meta_type, $object_id);
             if($meta_data){
                 foreach($meta_data as $key => $value){
-                    update_metadata($meta_type, $object_id, $key, $value);
+                    add_metadata($meta_type, $object_id, $key, $value, true);
                 }
-                do_action('bc_cf7_meta_data_updated', $meta_data, $meta_type, $object_id);
             }
             $posted_data = $submission->get_posted_data();
             $posted_data = apply_filters('bc_cf7_posted_data', $posted_data, $meta_type, $object_id);
@@ -251,7 +256,6 @@ if(!class_exists('BC_CF7')){
                         update_metadata($meta_type, $object_id, $key, $value);
                     }
                 }
-                do_action('bc_cf7_posted_data_updated', $posted_data, $meta_type, $object_id);
             }
             $uploaded_files = $submission->uploaded_files();
             $uploaded_files = apply_filters('bc_cf7_uploaded_files', $uploaded_files, $meta_type, $object_id);
@@ -276,7 +280,6 @@ if(!class_exists('BC_CF7')){
                         }
                     }
                 }
-                do_action('bc_cf7_uploaded_files_updated', $uploaded_files, $meta_type, $object_id);
             }
             do_action('bc_cf7_updated', $meta_type, $object_id);
             return true;
