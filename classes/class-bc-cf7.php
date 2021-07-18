@@ -54,12 +54,7 @@ if(!class_exists('BC_CF7')){
 
         private function free_text_value($name = ''){
             $name .= '_free_text';
-            if(!isset($_POST[$name])){
-                return '';
-            }
-            $value = wp_unslash($_POST[$name]);
-    		$value = $this->sanitize_posted_data($value);
-            return $value;
+            return $this->get_posted_data($name);
         }
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
