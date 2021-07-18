@@ -37,7 +37,7 @@ if(!class_exists('BC_CF7')){
     	//
     	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        private $additional_data = [], $file = '';
+        private $additional_data = [], $file = '', $posted_data = [];
 
     	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -60,6 +60,30 @@ if(!class_exists('BC_CF7')){
             $value = wp_unslash($_POST[$name]);
     		$value = $this->sanitize_posted_data($value);
             return $value;
+        }
+
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        private function get_posted_data($name = ''){
+            if(!$this->posted_data){
+                $this->setup_posted_data();
+            }
+            if('' === $name){
+                return $this->posted_data;
+            }
+            if(!isset($this->posted_data[$name])){
+                return '';
+            }
+            return $this->posted_data[$name];
+        }
+
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        private function setup_posted_data(){
+            $posted_data = array_filter((array) $_POST, function($key){
+    			return '_' !== substr($key, 0, 1);
+    		}, ARRAY_FILTER_USE_KEY);
+            $this->posted_data = $this->sanitize_posted_data($posted_data);
         }
 
     	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -87,7 +111,7 @@ if(!class_exists('BC_CF7')){
                 add_filter('wpcf7_remote_ip_addr', [$this, 'wpcf7_remote_ip_addr']);
             }
             if(isset($_SERVER['HTTP_CF_IPCOUNTRY'])){
-                add_filter('shortcode_atts_wpcf7', [$this, 'shortcode_atts_wpcf7']);
+                add_filter('shortcode_atts_wpcf7', [$this, 'shortcode_atts_wpcf7'], 10, 3);
             }
             bc_build_update_checker('https://github.com/beavercoffee/bc-cf7', $this->file, 'bc-cf7');
             do_action('bc_cf7_loaded');
@@ -169,7 +193,7 @@ if(!class_exists('BC_CF7')){
 
     	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        public function shortcode_atts_wpcf7($out){
+        public function shortcode_atts_wpcf7($out, $pairs, $atts){
             $out['bc_cf_ipcountry'] = $_SERVER['HTTP_CF_IPCOUNTRY'];
             return $out;
         }
