@@ -83,6 +83,12 @@ if(!class_exists('BC_CF7')){
             add_filter('wpcf7_posted_data_radio*', [$this, 'wpcf7_posted_data_type'], 10, 3);
             add_filter('wpcf7_posted_data_select', [$this, 'wpcf7_posted_data_type'], 10, 3);
             add_filter('wpcf7_posted_data_select*', [$this, 'wpcf7_posted_data_type'], 10, 3);
+            if(isset($_SERVER['HTTP_CF_CONNECTING_IP'])){
+                add_filter('wpcf7_remote_ip_addr', [$this, 'wpcf7_remote_ip_addr']);
+            }
+            if(isset($_SERVER['HTTP_CF_IPCOUNTRY'])){
+                add_filter('shortcode_atts_wpcf7', [$this, 'shortcode_atts_wpcf7']);
+            }
             bc_build_update_checker('https://github.com/beavercoffee/bc-cf7', $this->file, 'bc-cf7');
             do_action('bc_cf7_loaded');
         }
@@ -159,6 +165,13 @@ if(!class_exists('BC_CF7')){
     			$value = wp_kses_no_null($value);
     		}
     		return $value;
+        }
+
+    	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        public function shortcode_atts_wpcf7($out){
+            $out['bc_cf_ipcountry'] = $_SERVER['HTTP_CF_IPCOUNTRY'];
+            return $out;
         }
 
     	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -318,6 +331,13 @@ if(!class_exists('BC_CF7')){
 				$value = $value_orig;
             }
             return $value;
+        }
+
+    	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        public function wpcf7_remote_ip_addr($ip_addr){
+            $ip_addr = $_SERVER['HTTP_CF_CONNECTING_IP'];
+            return $ip_addr;
         }
 
     	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
