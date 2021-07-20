@@ -79,7 +79,18 @@ if(!class_exists('BC_CF7')){
                 });
         		return;
         	}
+            if(!version_compare(WPCF7_VERSION, '5.4', '>=')){
+                add_action('admin_notices', function(){
+                    echo bc_admin_notice(bc_first_p(printf(__('There is a new version of %1$s available. <a href="%2$s" %3$s>View version %4$s details</a>.'),'<strong>Contact Form 7</strong>', '', '', '')));
+                });
+        		return;
+            }
+            add_action('init', [$this, 'init']);
             add_action('wpcf7_enqueue_scripts', [$this, 'wpcf7_enqueue_scripts']);
+            add_filter('pre_delete_post', [$this, 'pre_delete_post'], 10, 3);
+            add_filter('wpcf7_autop_or_not', [$this, 'wpcf7_autop_or_not']);
+            add_filter('wpcf7_form_elements', 'do_shortcode');
+            add_filter('wpcf7_form_tag_data_option', [$this, 'wpcf7_form_tag_data_option'], 10, 3);
             add_filter('wpcf7_posted_data', [$this, 'wpcf7_posted_data']);
             add_filter('wpcf7_posted_data_checkbox', [$this, 'wpcf7_posted_data_type'], 10, 3);
             add_filter('wpcf7_posted_data_checkbox*', [$this, 'wpcf7_posted_data_type'], 10, 3);
@@ -87,6 +98,7 @@ if(!class_exists('BC_CF7')){
             add_filter('wpcf7_posted_data_radio*', [$this, 'wpcf7_posted_data_type'], 10, 3);
             add_filter('wpcf7_posted_data_select', [$this, 'wpcf7_posted_data_type'], 10, 3);
             add_filter('wpcf7_posted_data_select*', [$this, 'wpcf7_posted_data_type'], 10, 3);
+            add_filter('wpcf7_verify_nonce', 'is_user_logged_in');
             if(isset($_SERVER['HTTP_CF_CONNECTING_IP'])){
                 add_filter('wpcf7_remote_ip_addr', [$this, 'wpcf7_remote_ip_addr']);
             }
@@ -99,6 +111,148 @@ if(!class_exists('BC_CF7')){
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+        public function bc_if($atts, $content = ''){
+            $atts = shortcode_atts([
+                'compare' => '=',
+        		'key' => '',
+        		'type' => 'CHAR',
+        		'value' => '',
+            ], $atts, 'bc_if');
+        	extract($atts);
+            if(!in_array($compare, ['!=', '<', '<=', '=', '>', '>=', 'EXISTS', 'LIKE', 'NOT EXISTS', 'NOT LIKE', 'NOT REGEXP', 'REGEXP'])){
+                return '';
+            }
+            if(!in_array($type, ['CHAR', 'DATE', 'DATETIME', 'DECIMAL', 'NUMERIC', 'TIME']){
+                return '';
+            }
+            $content = array_filter(explode('[bc_else]', $content, 2));
+            $content_false = isset($content[1]) ? $content[1] : '';
+            $content_true = $content[0];
+            $posted_data = $this->get_posted_data($key);
+            if('' === $posted_data){
+                switch($compare){
+                    case 'EXISTS':
+                        if('' !== $posted_data){
+                            return $content_true;
+                        } else {
+                            return $content_false;
+                        }
+                        break;
+                    case 'NOT EXISTS':
+                        if('' === $posted_data){
+                            return $content_true;
+                        } else {
+                            return $content_false;
+                        }
+                        break;
+                    default:
+                        return '';
+                }
+            } else {
+                switch($type){
+                    case 'DATE':
+                        $posted_data = strtotime(date_i18n('Y-m-d', strtotime($posted_data)) . ' 00:00:00');
+                        $value = strtotime(date_i18n('Y-m-d', strtotime($value)) . ' 00:00:00');
+                        break;
+                    case 'DATETIME':
+                        $posted_data = strtotime($posted_data);
+                        $value = strtotime($value);
+                        break;
+                    case 'DECIMAL':
+                        $posted_data = (float) $posted_data;
+                        $value = (float) $value;
+                        break;
+                    case 'NUMERIC':
+                        $posted_data = (int) $posted_data;
+                        $value = (int) $value;
+                        break;
+                    case 'TIME':
+                        $posted_data = strtotime('1970-01-01 ' . date_i18n('H:i:s', strtotime($posted_data)));
+                        $value = strtotime('1970-01-01 ' . date_i18n('H:i:s', strtotime($value)));
+                        break;
+                    default:
+                        $posted_data = (string) $posted_data;
+                        $value = (string) $value;
+                }
+                switch($compare){
+                    case '!=':
+                        if($posted_data !== $value){
+                            return $content_true;
+                        } else {
+                            return $content_false;
+                        }
+                        break;
+                    case '<':
+                        if($posted_data < $value){
+                            return $content_true;
+                        } else {
+                            return $content_false;
+                        }
+                        break;
+                    case '<=':
+                        if($posted_data <= $value){
+                            return $content_true;
+                        } else {
+                            return $content_false;
+                        }
+                        break;
+                    case '=':
+                        if($posted_data === $value){
+                            return $content_true;
+                        } else {
+                            return $content_false;
+                        }
+                        break;
+                    case '>':
+                        if($posted_data > $value){
+                            return $content_true;
+                        } else {
+                            return $content_false;
+                        }
+                        break;
+                    case '>=':
+                        if($posted_data >= $value){
+                            return $content_true;
+                        } else {
+                            return $content_false;
+                        }
+                        break;
+                    case 'LIKE':
+                        if(false !== strpos($posted_data, $value)){
+                            return $content_true;
+                        } else {
+                            return $content_false;
+                        }
+                        break;
+                    case 'NOT LIKE':
+                        if(false === strpos($posted_data, $value)){
+                            return $content_true;
+                        } else {
+                            return $content_false;
+                        }
+                        break;
+                    case 'NOT REGEXP':
+                        if(0 === preg_match($value, $posted_data)){
+                            return $content_true;
+                        } else {
+                            return $content_false;
+                        }
+                        break;
+                    case 'REGEXP':
+                        if(1 === preg_match($value, $posted_data)){
+                            return $content_true;
+                        } else {
+                            return $content_false;
+                        }
+                        break;
+                    default:
+                        return '';
+                }
+            }
+        }
+
+    	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
         public function get_posted_data($name = ''){
             if(!$this->posted_data){
                 $this->setup_posted_data();
@@ -110,6 +264,12 @@ if(!class_exists('BC_CF7')){
                 return '';
             }
             return $this->posted_data[$name];
+        }
+
+    	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        public function init(){
+            add_shortcode('bc_if', [$this, 'bc_if']);
         }
 
     	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -156,6 +316,15 @@ if(!class_exists('BC_CF7')){
         		WPCF7_Mail::send($template, $name);
         	}
         	return true;
+        }
+
+    	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        public function pre_delete_post($delete, $post, $force_delete){
+            if('wpcf7_contact_form' !== $post->post_type){
+                return $delete;
+            }
+            return false;
         }
 
     	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -302,6 +471,36 @@ if(!class_exists('BC_CF7')){
             }
             do_action('bc_cf7_updated', $meta_type, $object_id);
             return true;
+        }
+
+    	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        public function wpcf7_autop_or_not($autop){
+            $contact_form = wpcf7_get_current_contact_form();
+            if(null === $contact_form){
+                return $autop;
+            }
+            if($contact_form->is_true('bc_autop')){
+                return $autop;
+            }
+            return false;
+        }
+
+    	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        public function wpcf7_form_tag_data_option($data, $options, $args){
+            $data = (array) $data;
+            foreach($options as $option){
+                if(strpos($option, 'bc.') !== 0){
+                    continue;
+                }
+                $option = array_filter(explode('.', $option));
+				if(isset($option[1]){
+                    $data = apply_filters("bc_data_option_{$option[1]}", $data);
+                    $data = (array) $data;
+				}
+			}
+			return $data;
         }
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
