@@ -122,7 +122,7 @@ if(!class_exists('BC_CF7')){
             if(!in_array($compare, ['!=', '<', '<=', '=', '>', '>=', 'EXISTS', 'LIKE', 'NOT EXISTS', 'NOT LIKE', 'NOT REGEXP', 'REGEXP'])){
                 return '';
             }
-            if(!in_array($type, ['CHAR', 'DATE', 'DATETIME', 'DECIMAL', 'NUMERIC', 'TIME']){
+            if(!in_array($type, ['CHAR', 'DATE', 'DATETIME', 'DECIMAL', 'NUMERIC', 'TIME'])){
                 return '';
             }
             $content = array_filter(explode('[bc_else]', $content, 2));
@@ -495,7 +495,7 @@ if(!class_exists('BC_CF7')){
                     continue;
                 }
                 $option = array_filter(explode('.', $option));
-				if(isset($option[1]){
+				if(isset($option[1])){
                     $data = apply_filters("bc_data_option_{$option[1]}", $data);
                     $data = (array) $data;
 				}
