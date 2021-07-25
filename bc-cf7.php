@@ -12,7 +12,7 @@ Plugin URI: https://github.com/beavercoffee/bc-cf7
 Requires at least: 5.7
 Requires PHP: 5.6
 Text Domain: bc-cf7
-Version: 1.7.19.1
+Version: 1.7.25
 */
 
 if(defined('ABSPATH')){

@@ -253,6 +253,22 @@ if(!class_exists('BC_CF7')){
 
     	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+        public function get_data_options($options = []){
+			$data_options = [];
+        	foreach($options as $option){
+                if(strpos($option, 'bc.') !== 0){
+                    continue;
+                }
+                $option = array_filter(explode('.', $option, 2));
+				if(isset($option[1])){
+                    $data_options[] = $option[1];
+				}
+			}
+			return $data_options;
+        }
+
+    	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
         public function get_posted_data($name = ''){
             if(!$this->posted_data){
                 $this->setup_posted_data();
@@ -489,15 +505,12 @@ if(!class_exists('BC_CF7')){
     	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         public function wpcf7_form_tag_data_option($data, $options, $args){
-            $data = (array) $data;
-            foreach($options as $option){
-                if(strpos($option, 'bc.') !== 0){
-                    continue;
-                }
-                $option = array_filter(explode('.', $option));
-				if(isset($option[1])){
-                    $data = apply_filters("bc_data_option_{$option[1]}", $data);
-                    $data = (array) $data;
+			$data_options = $this->get_data_options($options);
+			if($data_options){
+				$data = (array) $data;
+				foreach($data_options as $data_option){
+					$data = apply_filters("bc_data_option_{$data_option}", $data);
+					$data = (array) $data;
 				}
 			}
 			return $data;
@@ -548,9 +561,23 @@ if(!class_exists('BC_CF7')){
                 }
             }
 			if(WPCF7_USE_PIPE and $pipes instanceof WPCF7_Pipes and !$pipes->zero()){
-				$this->additional_data[$name . '_value'] = $value;
-				$value = $value_orig;
+				$this->additional_data[$name . '_label'] = $value_orig;
             }
+			$data = $tag->get_data_option();
+			if($data){
+				$data_flip = array_flip($data);
+				if(is_array($value)){
+					foreach($value as $key => $v){
+						if(isset($data_flip[$v])){
+							$value[$key] = $data_flip[$v];
+						}
+					}
+				} else {
+					if(isset($data_flip[$value])){
+						$value = $data_flip[$value];
+					}
+				}
+			}
             return $value;
         }
 
